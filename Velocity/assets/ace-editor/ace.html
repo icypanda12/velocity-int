@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Editor</title>
+    <style type="text/css" media="screen">
+
+        #editor {
+            margin: 0;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        @font-face {
+            font-family: 'Azeret Mono';
+            src: url('azeret.ttf') format('truetype');
+        }
+    </style>
+</head>
+<body>
+
+<pre id="editor"></pre>
+
+    <script src="src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="src-noconflict/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+    <script>
+        ace.require("ace/ext/language_tools");
+        var editor = ace.edit("editor");
+
+        editor.setShowPrintMargin(false);
+        document.getElementById('editor').style.fontSize = '14px';
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/lua");
+        editor.setHighlightActiveLine(true),
+        editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true,
+            fontFamily: 'Azeret Mono'
+        });
+
+
+        window.addEventListener('resize', function () {
+            editor.resize();
+            editor.renderer.updateFull();
+        });
+
+        const sessions = {};
+
+        function createSession(tabId) {
+            const session = ace.createEditSession("", "ace/mode/lua");
+            session.setTabSize(4);
+            session.setUseSoftTabs(true);
+            sessions[tabId] = session;
+            editor.setSession(session);
+            editor.focus();
+            editor.navigateFileEnd();
+        }
+
+        function switchSession(tabId) {
+            if (sessions[tabId]) {
+                editor.setSession(sessions[tabId]);
+            }
+        }
+
+        function removeSession(tabId) {
+            delete sessions[tabId];
+        }
+
+        function clearSession(tabId) {
+            if (sessions[tabId]) {
+                sessions[tabId].setValue("");
+            }
+        }
+
+        function loadContent(tabId, content) {
+            if (!sessions[tabId]) {
+                createSession(tabId);
+            }
+            sessions[tabId].setValue(content);
+            switchSession(tabId);
+        }
+
+        function getContent(tabId) {
+            if (sessions[tabId]) {
+                return sessions[tabId].getValue();
+            }
+            return "";
+        }
+
+        window.aceInterop = {
+            createSession,
+            switchSession,
+            removeSession,
+            clearSession,
+            loadContent,
+            getContent
+        };
+    </script>
+
+</body>
+</html>
